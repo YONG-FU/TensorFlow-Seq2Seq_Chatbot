@@ -6,19 +6,20 @@ References
 ----------
 http://suriyadeepan.github.io/2016-12-31-practical-seq2seq/
 """
-import tensorflow as tf
+
 import tensorlayer as tl
 from tensorlayer.layers import *
 
 import tensorflow as tf
-import numpy as np
 import time
 
 ###============= prepare data
 from data.twitter import data
 metadata, idx_q, idx_a = data.load_data(PATH='data/twitter/')                   # Twitter
+
 # from data.cornell_corpus import data
 # metadata, idx_q, idx_a = data.load_data(PATH='data/cornell_corpus/')          # Cornell Moive
+
 (trainX, trainY), (testX, testY), (validX, validY) = data.split_dataset(idx_q, idx_a)
 
 trainX = trainX.tolist()
@@ -44,7 +45,7 @@ n_step = int(xseq_len/batch_size)
 xvocab_size = len(metadata['idx2w']) # 8002 (0~8001)
 emb_dim = 1024
 
-w2idx = metadata['w2idx']   # dict  word 2 index
+w2idx = metadata['w2idx']   # dict word 2 index
 idx2w = metadata['idx2w']   # list index 2 word
 
 unk_id = w2idx['unk']   # 1
@@ -95,6 +96,7 @@ def model(encode_seqs, decode_seqs, is_train=True, reuse=False):
                 vocabulary_size = xvocab_size,
                 embedding_size = emb_dim,
                 name = 'seq_embedding')
+
         net_rnn = Seq2Seq(net_encode, net_decode,
                 cell_fn = tf.contrib.rnn.BasicLSTMCell,
                 n_hidden = emb_dim,
@@ -116,7 +118,7 @@ target_seqs = tf.placeholder(dtype=tf.int64, shape=[batch_size, None], name="tar
 target_mask = tf.placeholder(dtype=tf.int64, shape=[batch_size, None], name="target_mask") # tl.prepro.sequences_get_mask()
 net_out, _ = model(encode_seqs, decode_seqs, is_train=True, reuse=False)
 
-# model for inferencing
+# model for predicting
 encode_seqs2 = tf.placeholder(dtype=tf.int64, shape=[1, None], name="encode_seqs")
 decode_seqs2 = tf.placeholder(dtype=tf.int64, shape=[1, None], name="decode_seqs")
 net, net_rnn = model(encode_seqs2, decode_seqs2, is_train=False, reuse=True)
@@ -185,7 +187,7 @@ for epoch in range(n_epoch):
 
         total_err += err; n_iter += 1
 
-        ###============= inference
+        ###============= predict
         if n_iter % 1000 == 0:
             seeds = ["happy birthday have a nice day",
                     "donald trump won last nights presidential debate according to snap online polls"]
